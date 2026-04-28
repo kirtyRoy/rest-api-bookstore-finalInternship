@@ -2,12 +2,15 @@ import Book from "../models/Book.js";
 
 // CREATE
 export const createBook = async (req, res) => {
-  const book = await Book.create(req.body);
-  res.json(book);
+  try {
+    const book = await Book.create(req.body);
+    res.json(book);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-// GET ALL
-// GET ALL (THIS is the one you just updated)
+//GET ALL
 export const getBooks = async (req, res) => {
   const { page = 1, limit = 5, search = "" } = req.query;
 
@@ -15,8 +18,9 @@ export const getBooks = async (req, res) => {
     const books = await Book.find({
       title: { $regex: search, $options: "i" }
     })
+      .populate("user") // 👈 show user data
       .limit(parseInt(limit))
-      .skip((page - 1) * limit);
+      .skip((page - 1) * parseInt(limit));
 
     res.json(books);
   } catch (err) {
@@ -26,8 +30,12 @@ export const getBooks = async (req, res) => {
 
 // GET ONE
 export const getBook = async (req, res) => {
-  const book = await Book.findById(req.params.id);
-  res.json(book);
+  try {
+    const book = await Book.findById(req.params.id).populate("user");
+    res.json(book);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // UPDATE
